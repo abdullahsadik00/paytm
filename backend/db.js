@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose")
 mongoose.connect(
     'mongodb+srv://sadik:Sadik%403012@cluster0.7v7sara.mongodb.net/paytm'
   );
