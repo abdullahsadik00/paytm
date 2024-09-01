@@ -24,22 +24,24 @@ userRouter.post('/signup', async (req, res) => {
   const { success } = signupSchema.safeParse(req.body);
   if (!success) {
     return res.status(411).json({
-      message: 'Email already taken / Incorrect inputs',
+      message: 'Email already taken / Incorrect inputs 1',
     });
   }
 
   const user = await User.findOne({
     username: body.username,
   });
-  if (user._id) {
+  if (user) {
     return res.json({
-      message: 'Email already taken / Incorrect inputs',
+      message: 'Email already taken / Incorrect inputs 2',
     });
   }
 
   const dbUser = await User.create(body);
+  const userId = dbUser._id;
+
   const amount = await Account.create({
-    userId: user._id,
+    userId: userId,
     balance: 1 + Math.random() * 100000,
   });
   const token = jwt.sign(
@@ -59,7 +61,7 @@ userRouter.post('/signin', async (req, res) => {
   const { success } = signinSchema.safeParse(body);
   if (!success) {
     return res.status(411).json({
-      message: 'Email already taken / Incorrect inputs',
+      message: 'Email already taken / Incorrect inputs 3 ',
     });
   }
   const user = await User.findOne({
@@ -108,10 +110,10 @@ userRouter.get('/bulk', async (req, res) => {
   const user = await User.find({
     $or: [
       {
-        firstname: { $regex: filter },
+        firstName: { $regex: filter },
       },
       {
-        lastname: { $regex: filter },
+        lastName: { $regex: filter },
       },
     ],
   });
