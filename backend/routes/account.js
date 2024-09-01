@@ -1,6 +1,7 @@
 const express = require('express');
 const { Account } = require('../db');
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { default: mongoose } = require('mongoose');
 const accountRouter = express.Router();
 
 accountRouter.get('/balance', async (req, res) => {
@@ -16,11 +17,14 @@ accountRouter.get('/balance', async (req, res) => {
 });
 
 accountRouter.post('/transfer', authMiddleware, async (req, res) => {
+  const session = await mongoose.startSession();
   const { amount, to } = req.body;
+  session.startTransaction();
   const account = await Account.findOne({
     userId: req.userId,
   });
   if (amount > account.balance) {
+    await session.abortTransaction();
     res.json({
       message: 'Insufficient Balance',
     });
@@ -31,6 +35,7 @@ accountRouter.post('/transfer', authMiddleware, async (req, res) => {
   });
 
   if (!toAccount) {
+    await session.abortTransaction();
     res.json({
       message: 'Invalid Account',
     });
@@ -57,6 +62,7 @@ accountRouter.post('/transfer', authMiddleware, async (req, res) => {
       },
     }
   );
+  await session.commitTransaction();
   res.json({
     message: 'Transfer successful',
   });
