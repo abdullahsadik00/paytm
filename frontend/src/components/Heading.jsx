@@ -1,8 +1,8 @@
 import React from 'react'
 
-const Heading = () => {
+const Heading = ({label}) => {
   return (
-    <div>Heading</div>
+    <div className='font-bold text-4xl p-4'>{label}</div>
   )
 }
 
