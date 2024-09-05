@@ -18,54 +18,38 @@ accountRouter.get('/balance', async (req, res) => {
 
 accountRouter.post('/transfer', authMiddleware, async (req, res) => {
   const session = await mongoose.startSession();
-  const { amount, to } = req.body;
-  session.startTransaction();
-  const account = await Account.findOne({
-    userId: req.userId,
-  });
-  if (amount > account.balance) {
-    await session.abortTransaction();
-    res.json({
-      message: 'Insufficient Balance',
-    });
-  }
 
-  const toAccount = await Account.findOne({
-    userId: to,
-  });
+    session.startTransaction();
+    const { amount, to } = req.body;
 
-  if (!toAccount) {
-    await session.abortTransaction();
-    res.json({
-      message: 'Invalid Account',
-    });
-  }
+    // Fetch the accounts within the transaction
+    const account = await Account.findOne({ userId: req.userId }).session(session);
 
-  await Account.updateOne(
-    {
-      userId: req.userId,
-    },
-    {
-      $inc: {
-        balance: -amount,
-      },
+    if (!account || account.balance < amount) {
+        await session.abortTransaction();
+        return res.status(400).json({
+            message: "Insufficient balance"
+        });
     }
-  );
 
-  await Account.updateOne(
-    {
-      userId: to,
-    },
-    {
-      $inc: {
-        balance: amount,
-      },
+    const toAccount = await Account.findOne({ userId: to }).session(session);
+
+    if (!toAccount) {
+        await session.abortTransaction();
+        return res.status(400).json({
+            message: "Invalid account"
+        });
     }
-  );
-  await session.commitTransaction();
-  res.json({
-    message: 'Transfer successful',
-  });
+
+    // Perform the transfer
+    await Account.updateOne({ userId: req.userId }, { $inc: { balance: -amount } }).session(session);
+    await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+
+    // Commit the transaction
+    await session.commitTransaction();
+    res.json({
+        message: "Transfer successful"
+    });
 });
 
 module.exports = accountRouter;

@@ -45,7 +45,7 @@ const SendMoney = () => {
                 onClick={() => {
                     console.log(amount)
                   axios.post(
-                    'http://localhost/api/v1/account/transfer',
+                    'http://localhost:3000/api/v1/account/transfer',
                     {
                       to: id,
                       amount,
