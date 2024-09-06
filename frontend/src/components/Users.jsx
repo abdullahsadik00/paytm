@@ -9,8 +9,7 @@ const UserList = () => {
 
   useEffect(()=>{
     axios.get(`http://localhost:3000/api/v1/user/bulk?filter=${filter}`).then(res=>{
-      console.log(res.data.user)
-      setUsers(res.data.user)
+       setUsers(res.data.user)
     })
       },[filter])
 
